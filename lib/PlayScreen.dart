@@ -1,11 +1,17 @@
+import 'package:awesome_notifications/awesome_notifications.dart';
 import "package:flutter/material.dart";
 import 'package:audioplayer/audioplayer.dart';
+import 'package:taal/test.dart';
+
+String nowPlaying;
+var currentSongAlbumart;
 
 class PlayScreen extends StatefulWidget {
   final audio;
   final img;
   final time;
-  PlayScreen({this.audio, this.img, this.time});
+  final name;
+  PlayScreen({this.name, this.audio, this.img, this.time});
   @override
   _PlayScreenState createState() => _PlayScreenState();
 }
@@ -22,63 +28,84 @@ class _PlayScreenState extends State<PlayScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    nowPlaying = widget.audio;
+    currentSongAlbumart = widget.img;
     audioPlayer.play(widget.audio);
+    noti();
   }
 
   @override
   Widget build(BuildContext context) {
     _maxH = MediaQuery.of(context).size.height;
-    _maxW = MediaQuery.of(context).size.width;
-    return Scaffold(
-      body: Container(
-          color: Colors.white,
-          child: Column(
-            children: [
-              SizedBox(
-                height: 27,
-              ),
-              Container(
-                color: Colors.black,
-                width: _maxW,
-                height: _maxH - _maxH / 4 - 35,
-                child: Center(
-                  child: Container(
-                    width: _maxW - 60,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.grey,
-                              offset: Offset(5, 10),
-                              spreadRadius: 5,
-                              blurRadius: 10)
-                        ]),
-                    child: widget.img != null
-                        ? Hero(
-                            tag: widget.audio,
-                            child:
-                                Image.memory(widget.img, fit: BoxFit.contain))
-                        : Hero(
-                            tag: widget.audio,
-                            child: Image.asset("lib/Song.png",
-                                fit: BoxFit.contain)),
+    
+    return WillPopScope(
+        onWillPop: () async {
+          Navigator.pop(context);
+        },
+        child: Scaffold(
+          body: Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 27,
                   ),
-                ),
-              ),
-              //Expanded(child: _slider(),)
-              Expanded(
-                child: _palyerTimerSeeker(),
-              ),
-              _controllingButtons()
-            ],
-          )),
-    );
+                  Container(
+                    color: Colors.black,
+                    width: _maxW,
+                    height: _maxH - _maxH / 4 - 35,
+                    child: Center(
+                      child: Container(
+                        //width: _maxW - 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.grey,
+                                  offset: Offset(5, 10),
+                                  spreadRadius: 5,
+                                  blurRadius: 10)
+                            ]),
+                        child: widget.img != null
+                            ? Hero(
+                                tag: widget.audio,
+                                child: Image.memory(widget.img,
+                                    fit: BoxFit.contain))
+                            : Hero(
+                                tag: widget.audio,
+                                child: Image.asset("lib/Song.png",
+                                    fit: BoxFit.contain)),
+                      ),
+                    ),
+                  ),
+                  //Expanded(child: _slider(),)
+                  Expanded(
+                    child: _palyerTimerSeeker(),
+                  ),
+                  _controllingButtons()
+                ],
+              )),
+        ));
   }
 
   @override
   dispose() {
     super.dispose();
-    audioPlayer.stop();
+  }
+
+  Future<void> noti() async {
+    AwesomeNotifications().createNotification(
+        content: NotificationContent(
+      id: 1,
+      channelKey: 'play',
+      title: '${widget.name}',
+      body: 'taal Playing',
+    ));
+
+    AwesomeNotifications().actionStream.listen((event) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => Test()));
+    });
   }
 
   _controllingButtons() {
@@ -100,10 +127,12 @@ class _PlayScreenState extends State<PlayScreen> {
               onPressed: () {
                 if (play.value == true) {
                   audioPlayer.pause();
+                  AwesomeNotifications().cancel(1);
                   play.value = false;
                 } else {
                   audioPlayer.play(widget.audio);
                   play.value = true;
+                  noti();
                 }
                 setState(() {});
                 //play.value = !play.value;
@@ -175,7 +204,7 @@ class _PlayScreenState extends State<PlayScreen> {
                   ) {
                 initValue.value = snapshot.data.inSeconds;
                 var t = timeFormater(initValue.value);
-                print(t);
+                //print(t);
                 return _audi(t);
               } else if (audioPlayer.state == AudioPlayerState.COMPLETED) {
                 initValue.value = snapshot.data.inSeconds;

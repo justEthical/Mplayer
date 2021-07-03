@@ -1,14 +1,22 @@
 import "package:flutter/material.dart";
 //import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:flutter/services.dart';
+import 'package:taal/PlayScreen.dart';
+import 'package:taal/playScreenMod.dart';
+import 'package:taal/test.dart';
 //import 'package:taal/PlayScreen.dart';
 //import 'package:taal/test.dart';
 import 'HomeScreen.dart';
+ValueNotifier<bool> isOpen = ValueNotifier<bool>(false);
 
 //final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 //   FlutterLocalNotificationsPlugin();
 main() {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp
+  ]);
   AwesomeNotifications().initialize(null, [
     NotificationChannel(
       channelKey: 'key1',
@@ -22,7 +30,7 @@ main() {
     ),
     NotificationChannel(
         //icon: 'resource://drawable/res_media_icon',
-        channelKey: 'media_player',
+        channelKey: 'play',
         channelName: 'Media player controller',
         channelDescription: 'Media player controller',
         defaultPrivacy: NotificationPrivacy.Public,
@@ -39,6 +47,32 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: HomeScreen(),
+    );
+  }
+}
+
+class NewHome extends StatefulWidget {
+  @override
+  _NewHomeState createState() => _NewHomeState();
+}
+
+class _NewHomeState extends State<NewHome> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Stack(
+        children: [
+          Container(
+            color: Colors.blueGrey,
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+          ),
+          AnimatedPositioned(
+            duration: Duration(milliseconds: 500),
+            left: isOpen.value ?MediaQuery.of(context).size.width/5 * 3:0,
+            child: HomeScreen(),)
+        ],
+      ),
     );
   }
 }
@@ -96,12 +130,12 @@ class _NotiState extends State<Noti> {
               buttonType: ActionButtonType.Default)
         ],
         content: NotificationContent(
-            id: 2,
-            channelKey: 'media_player',
-            title: 'something more',
-            body: "solid body",
-            //notificationLayout: NotificationLayout.MediaPlayer
-            ));
+          id: 2,
+          channelKey: 'media_player',
+          title: 'something more',
+          body: "solid body",
+          //notificationLayout: NotificationLayout.MediaPlayer
+        ));
 
     AwesomeNotifications().actionStream.listen((event) {
       Navigator.push(

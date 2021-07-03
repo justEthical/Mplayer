@@ -30,6 +30,7 @@ dependencies:
   #audio_service: ^0.11.0
   flutter_local_notifications: ^4.0.1+2
   awesome_notifications: any
+  minimize_app: ^0.1.1
   #flutter_media_metadata: ^0.1.0
 
 
